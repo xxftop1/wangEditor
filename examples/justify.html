@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="div1">
+        <h1>为何选择 wangEditor</h1>
+        <ul>
+            <li>简洁、轻量级、文档齐全</li>
+            <li>万星项目 Github Star 1w+</li>
+            <li>npm 周下载量 1w+</li>
+        </ul>
+    </div>
+
+    <script src="../dist/wangEditor.js"></script>
+    <script>
+        // 改为使用var声明，才能在window对象上获取到编辑器实例，方便e2e测试
+        var E = window.wangEditor
+        var editor = new E('#div1')
+        editor.config.placeholder = '请输入...'
+
+        editor.config.showFullScreen = true
+        editor.create()
+    </script>
+</body>
+</html>

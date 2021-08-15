@@ -6,6 +6,7 @@ import $, { DomElement } from '../utils/dom-core'
 import { UA } from '../utils/util'
 import Editor from './index'
 import { EMPTY_P } from '../utils/const'
+const SPECIAL_TOP_NODE_LIST = ['UL', 'OL', 'TABLE']
 
 class SelectionAndRange {
     public editor: Editor
@@ -361,6 +362,111 @@ class SelectionAndRange {
         range?.setStart(node, 0)
         range?.setEnd(node, 0)
     }
+
+    /**
+     * 获取选区中多个顶级元素节点
+     * @returns []
+     */
+    public getSelectionMultilevelTopNodes(): DomElement[] {
+        const range = this.getRange()
+
+        if (!range) return []
+
+        const editable = this.editor.$textElem.elems[0] as HTMLDivElement
+        const { startContainer: start, endContainer: end, commonAncestorContainer: common } = range
+
+        // 选区超出可编辑区域之外
+        if (!editable.contains(common)) return []
+
+        const startPath = nodePath(start, editable)
+        const endPath = nodePath(end, editable)
+
+        let multilevel: Element[] = []
+        let startElem = startPath[0]
+        let endElem = endPath[0]
+
+        // 单行选区
+        if (startElem === endElem) {
+            // ul、li 类型的单行选区
+            if (isSpecialNode(startElem)) {
+                endElem = endPath[1]
+                startElem = startPath[1]
+                const root = startPath[0]
+                const children = Array.from(root.children)
+                const startIndex = children.indexOf(startElem)
+                const endIndex = children.indexOf(endElem)
+                multilevel = children.splice(startIndex, endIndex - startIndex + 1)
+            } else {
+                multilevel = [startElem]
+            }
+        } else {
+            // 多行选区
+            multilevel = optimize(startPath, 'start')
+            if (startElem !== endElem) {
+                // nextElementSibling: 只读属性. 返回当前元素在其父元素的子元素节点中的后一个元素节点,如果该元素已经是最后一个元素节点,则返回null.
+                let middle = startElem.nextElementSibling as Element
+                while (middle !== endElem) {
+                    if (isSpecialNode(middle)) {
+                        multilevel.push(...Array.from(middle.children))
+                    } else {
+                        multilevel.push(middle)
+                    }
+                    middle = middle.nextElementSibling as Element
+                }
+                multilevel.push(...optimize(endPath, 'end'))
+            }
+        }
+
+        return multilevel.map(elem => $(elem))
+    }
 }
 
+function nodePath(node: Node, root: Element) {
+    const path: Element[] = []
+
+    if (node.nodeType === Node.ELEMENT_NODE) {
+        path.unshift(node as Element)
+    }
+
+    let parent: Element | null = node.parentElement
+    while (parent && parent !== root) {
+        path.unshift(parent)
+        parent = parent.parentElement
+    }
+    return path
+}
+
+function optimize(path: Element[], direction: 'start' | 'end') {
+    const selection: Element[] = []
+
+    path = path.slice()
+
+    const root = path.shift() as Element
+    // 特殊元素
+    if (isSpecialNode(root)) {
+        const refer = path.shift()
+        const children = Array.from(root.children)
+        if (direction === 'start') {
+            for (let i = children.length - 1; i > -1; i--) {
+                selection.unshift(children[i] as Element)
+                if (children[i] === refer) break
+            }
+        } else {
+            for (let i = 0; i < children.length; i++) {
+                selection.push(children[i] as Element)
+                if (children[i] === refer) break
+            }
+        }
+    } else {
+        selection.push(root)
+    }
+    return selection
+}
+
+// 判断是不是特殊元素
+function isSpecialNode(node: Element) {
+    return (
+        SPECIAL_TOP_NODE_LIST.indexOf(node.nodeName) !== -1 && !node.classList.contains('w-e-todo')
+    )
+}
 export default SelectionAndRange
