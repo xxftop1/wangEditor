@@ -34,11 +34,13 @@ class UploadImg {
         const t = (text: string, prefix: string = i18nPrefix): string => {
             return editor.i18next.t(prefix + text)
         }
-
         // 设置图片alt
         const altText = alt ? `alt="${alt}" ` : ''
         const hrefText = href ? `data-href="${encodeURIComponent(href)}" ` : ''
         // 先插入图片，无论是否能成功
+        // var ele = document.createElement('a');
+        // ele.href = hrefText;
+        // ele.setAttribute('target', '_blank');
         editor.cmd.do(
             'insertHTML',
             `<img src="${src}" ${altText}${hrefText}style="max-width:100%;" contenteditable="false"/>`
@@ -67,7 +69,7 @@ class UploadImg {
      * 上传图片
      * @param files 文件列表
      */
-    public uploadImg(files: FileList | File[]): void {
+    public uploadImg(files: FileList | File[], alt?: string, href?: string): void {
         if (!files.length) {
             return
         }
@@ -170,8 +172,7 @@ class UploadImg {
 
         // ------------------------------ 自定义上传 ------------------------------
         if (customUploadImg && typeof customUploadImg === 'function') {
-            customUploadImg(resultFiles, this.insertImg.bind(this))
-
+            customUploadImg(resultFiles, alt, href, this.insertImg.bind(this))
             // 阻止以下代码执行，重要！！！
             return
         }

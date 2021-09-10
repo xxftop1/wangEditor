@@ -26,6 +26,9 @@ export default function (editor: Editor): ImgPanelConf {
     const linkUrlId = getRandom('input-link-url')
     const linkUrlAltId = getRandom('input-link-url-alt')
     const linkUrlHrefId = getRandom('input-link-url-href')
+    //本地上传id
+    const linkCustomUrlAltId = getRandom('input-link-url-alt')
+    const linkCustomUrlHrefId = getRandom('input-link-url-href')
     const linkBtnId = getRandom('btn-link')
 
     const i18nPrefix = 'menus.panelMenus.image.'
@@ -102,11 +105,23 @@ export default function (editor: Editor): ImgPanelConf {
                     // 返回 true 可关闭 panel
                     return true
                 }
+                let linkUrlAltText
+                if (config.showLinkImgAlt) {
+                    linkUrlAltText = $('#' + linkCustomUrlAltId)
+                        .val()
+                        .trim()
+                }
+                let linkUrlHrefText
+                if (config.showLinkImgHref) {
+                    linkUrlHrefText = $('#' + linkCustomUrlHrefId)
+                        .val()
+                        .trim()
+                }
 
                 // 获取选中的 file 对象列表
                 const fileList = fileElem.files
                 if (fileList?.length) {
-                    uploadImg.uploadImg(fileList)
+                    uploadImg.uploadImg(fileList, linkUrlAltText, linkUrlHrefText)
                 }
 
                 // 判断用于打开文件的input，有没有值，如果有就清空，以防上传同一张图片时，不会触发change事件
@@ -153,7 +168,18 @@ export default function (editor: Editor): ImgPanelConf {
             // 标题
             title: t('上传图片'),
             // 模板
-            tpl: getUploadImgTpl('w-e-up-img-container', 'w-e-icon-upload2', ''),
+            tpl: `<div>
+            <input
+            id="${linkCustomUrlAltId}"
+            type="text"
+            class="block"
+            placeholder="${t('图片文字说明')}"/>
+            <input
+            id="${linkCustomUrlHrefId}"
+            type="text"
+            class="block"
+            placeholder="${t('跳转链接')}"/>
+            ${getUploadImgTpl('w-e-up-img-container', 'w-e-icon-upload2', '')}</div>`,
             // 事件绑定
             events: uploadEvents,
         }, // first tab end

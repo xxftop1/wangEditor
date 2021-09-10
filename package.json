@@ -1,5 +1,5 @@
 {
-  "name": "wangeditor",
+  "name": "wangeditor-edit",
   "version": "4.7.7",
   "description": "wangEditor - 轻量级 web 富文本编辑器，配置方便，使用简单，开源免费",
   "homepage": "http://www.wangeditor.com/",
@@ -132,5 +132,10 @@
       "path": "dist/wangEditor.min.js",
       "limit": "100 kB"
     }
-  ]
+  ],
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "test"
+  }
 }
